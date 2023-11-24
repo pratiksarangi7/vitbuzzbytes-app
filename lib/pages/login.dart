@@ -1,7 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class LoginPage extends StatelessWidget {
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vit_buzz_bytes/pages/home.dart';
+
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+Future<bool> login(email, password) async {
+  final response = await http.post(
+    Uri.parse('http://192.168.93.98:3000/api/v1/users/login'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'email': email,
+      'password': password,
+    }),
+  );
+  if (response.statusCode == 200) {
+    Map<String, dynamic> resData = jsonDecode(response.body);
+    String token = resData['token'];
+    // Store the JWT locally
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('vitBuzzBytesToken', token);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -42,6 +79,7 @@ class LoginPage extends StatelessWidget {
                 SizedBox(
                   height: 50,
                   child: TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 10),
@@ -80,6 +118,7 @@ class LoginPage extends StatelessWidget {
                 SizedBox(
                   height: 50,
                   child: TextField(
+                    controller: passwordController,
                     decoration: InputDecoration(
                         contentPadding:
                             const EdgeInsets.symmetric(vertical: 10),
@@ -112,8 +151,8 @@ class LoginPage extends StatelessWidget {
                       style: TextStyle(
                           color: Theme.of(context)
                               .colorScheme
-                              .onSurface
-                              .withOpacity(0.4)),
+                              .primary
+                              .withOpacity(0.6)),
                     ),
                   ),
                 ),
@@ -137,13 +176,30 @@ class LoginPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Container(
-                  height: 45,
+                SizedBox(
+                  height: 55,
                   width: double
                       .infinity, // Make the button take all available width
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Handle login logic here
+                    onPressed: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      final loginStatus = await login(
+                          emailController.text.trim(),
+                          passwordController.text.trim());
+                      if (loginStatus) {
+                        if (context.mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomeScreen()),
+                          );
+                        }
+                      }
+                      setState(() {
+                        isLoading = false;
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).colorScheme.primary,
@@ -152,13 +208,19 @@ class LoginPage extends StatelessWidget {
                             10), // Make the button less rounded
                       ),
                     ),
-                    child: Text(
-                      'Login',
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium!
-                          .copyWith(fontWeight: FontWeight.w900, fontSize: 17),
-                    ),
+                    child: !isLoading
+                        ? Text(
+                            'Log in',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 17,
+                                    color: Colors.white),
+                          )
+                        : CircularProgressIndicator(
+                            color: Theme.of(context).colorScheme.surface),
                   ),
                 ),
               ],

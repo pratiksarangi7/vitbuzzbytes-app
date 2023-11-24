@@ -1,0 +1,65 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "_id": "655f7accdf5bae1ff8e07d1f",
+      "text": "test 11",
+      "category": "lostandfound",
+      "likes": [],
+      "dislikes": [],
+      "anonymous": false,
+      "createdBy": "bjbjbj",
+      "comments": [],
+      "createdAt": "2023-11-23T16:16:12.518Z",
+      "__v": 0
+    },
+    {
+      "_id": "655f7ac3df5bae1ff8e07d1b",
+      "text": "test 10",
+      "category": "lostandfound",
+      "likes": [],
+      "dislikes": [],
+      "anonymous": false,
+      "createdBy": "bjbjbj",
+      "comments": [],
+      "createdAt": "2023-11-23T16:16:03.871Z",
+      "__v": 0
+    },
+    {
+      "_id": "655f7ab7df5bae1ff8e07d17",
+      "text": "test 9",
+      "category": "lostandfound",
+      "likes": [],
+      "dislikes": [],
+      "anonymous": false,
+      "createdBy": "bjbjbj",
+      "comments": [],
+      "createdAt": "2023-11-23T16:15:51.700Z",
+      "__v": 0
+    },
+    {
+      "_id": "655f7aaddf5bae1ff8e07d13",
+      "text": "test 8",
+      "category": "lostandfound",
+      "likes": [],
+      "dislikes": [],
+      "anonymous": false,
+      "createdBy": "bjbjbj",
+      "comments": [],
+      "createdAt": "2023-11-23T16:15:41.281Z",
+      "__v": 0
+    },
+    {
+      "_id": "654ca3b2de36c6bca914596c",
+      "text": "test 8",
+      "category": "lostandfound",
+      "likes": [],
+      "dislikes": [],
+      "anonymous": false,
+      "createdBy": "bjbjbj",
+      "comments": [],
+      "createdAt": "2023-11-09T09:17:38.808Z",
+      "__v": 0
+    }
+  ]
+}
