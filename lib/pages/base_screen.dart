@@ -42,7 +42,7 @@ class BaseScreen extends ConsumerWidget {
         ),
         drawer: const MyDrawer(),
         body: AnimatedSwitcher(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           child: (indexOfBottomNav == 0)
               ? const HomeScreen()
               : (indexOfBottomNav == 1)

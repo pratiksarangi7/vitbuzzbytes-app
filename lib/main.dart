@@ -27,7 +27,9 @@ class MyApp extends StatelessWidget {
               displaySmall:
                   GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w700),
               bodyMedium: GoogleFonts.inter(fontSize: 22),
-              bodySmall: GoogleFonts.inter(fontSize: 14)),
+              bodySmall: GoogleFonts.lato(fontSize: 13),
+              titleSmall: GoogleFonts.poppins(
+                  fontSize: 15, fontWeight: FontWeight.w500)),
           colorScheme: const ColorScheme(
             primary: Color.fromRGBO(227, 169, 38, 1), // Button background color
             onPrimary: Colors.white, // Button text color

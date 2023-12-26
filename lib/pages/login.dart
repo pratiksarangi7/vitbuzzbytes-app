@@ -1,46 +1,80 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vit_buzz_bytes/pages/home.dart';
+import 'package:vit_buzz_bytes/constants/server.dart';
+import 'package:vit_buzz_bytes/pages/base_screen.dart';
+import 'package:vit_buzz_bytes/pages/signup.dart';
+import 'package:vit_buzz_bytes/pages/verifyotp.dart';
+import 'package:vit_buzz_bytes/providers/buzzes_provider.dart';
+import 'package:vit_buzz_bytes/providers/token_provider.dart';
+import 'package:vit_buzz_bytes/providers/user_id_provider.dart';
+import 'package:vit_buzz_bytes/utils/buzz.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-Future<bool> login(email, password) async {
-  final response = await http.post(
-    Uri.parse('http://192.168.93.98:3000/api/v1/users/login'),
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-    },
-    body: jsonEncode(<String, String>{
-      'email': email,
-      'password': password,
-    }),
-  );
-  if (response.statusCode == 200) {
-    Map<String, dynamic> resData = jsonDecode(response.body);
-    String token = resData['token'];
-    // Store the JWT locally
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('vitBuzzBytesToken', token);
-    return true;
-  } else {
-    return false;
+class _LoginPageState extends ConsumerState<LoginPage> {
+  Future<bool> login(
+      StateController<String> userIdController, email, password) async {
+    final response = await http.post(
+      Uri.parse('$server/api/v1/users/login'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'email': email,
+        'password': password,
+      }),
+    );
+    if (response.statusCode == 200) {
+      Map<String, dynamic> resData = jsonDecode(response.body);
+      String token = resData['token'];
+      print(token);
+      userIdController.state = resData['user'];
+      // Store the JWT locally
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('vitBuzzBytesToken', token);
+// pasting here:
+      var response2 = http.Response('', 400); // Default value
+      ref.read(tokenProvider.notifier).state = token;
+      try {
+        response2 = await http.get(
+          Uri.parse('$server/api/v1/buzzes/view-buzzes'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        print("response got");
+      } catch (e) {
+        print("Error occured: $e");
+      }
+      if (response2.statusCode == 200) {
+        final jsonData = jsonDecode(response2.body);
+        final buzzes =
+            jsonData['data'].map<Buzz>((item) => Buzz.fromJson(item)).toList();
+        print(buzzes);
+        ref.read(buzzListProvider.notifier).state = buzzes;
+        ref.read(userIdProvider.notifier).state = jsonData['user'];
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
-}
 
-class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isLoading = false;
   @override
   Widget build(BuildContext context) {
+    final userIdController = ref.watch(userIdProvider.notifier);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -56,15 +90,15 @@ class _LoginPageState extends State<LoginPage> {
                 Text("Welcome Back!",
                     style: Theme.of(context).textTheme.displayMedium),
                 const SizedBox(
-                  height: 40,
+                  height: 20,
                 ),
 
                 Image.asset(
                   'assets/images/app_icon.png',
-                  width: 120,
-                  height: 120,
+                  width: 180,
+                  height: 180,
                 ), // Placeholder for logo
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
                 Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
@@ -165,7 +199,12 @@ class _LoginPageState extends State<LoginPage> {
                     Text("New to VITBuzzBytes?",
                         style: Theme.of(context).textTheme.bodySmall),
                     TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SignUpScreen()));
+                        },
                         child: Text("Sign Up",
                             style: Theme.of(context)
                                 .textTheme
@@ -186,14 +225,16 @@ class _LoginPageState extends State<LoginPage> {
                         isLoading = true;
                       });
                       final loginStatus = await login(
+                          userIdController,
                           emailController.text.trim(),
                           passwordController.text.trim());
+
                       if (loginStatus) {
                         if (context.mounted) {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const HomeScreen()),
+                                builder: (context) => const BaseScreen()),
                           );
                         }
                       }
